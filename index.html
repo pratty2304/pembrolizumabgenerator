@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pembrolizumab Prescription Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #1a6fa8;
+      --teal:   #2196c4;
+      --teal-lt:#e3f4fb;
+      --gold:   #c9a84c;
+      --bg:     #e8f4fb;
+      --card:   #ffffff;
+      --border: #b8ddf0;
+      --text:   #1e3a4f;
+      --muted:  #5a8aa8;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ════════════════════════════════
+       FORM PANEL
+    ════════════════════════════════ */
+    #form-panel {
+      background: linear-gradient(135deg, #c9e8f7 0%, #ddf0fb 100%);
+      padding: 0;
+      border-bottom: 1.5px solid #a8d4ed;
+    }
+
+    .form-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 22px 36px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .form-header-icon {
+      width: 42px;
+      height: 42px;
+      background: var(--teal);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .form-header h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.2px;
+    }
+
+    .form-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .form-body {
+      padding: 24px 36px 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full-width { grid-column: 1 / -1; }
+
+    .form-group label {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 10px 13px;
+      background: #fff;
+      border: 1.5px solid #a8d4ed;
+      border-radius: 8px;
+      font-size: 13.5px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .form-group select option { background: #fff; color: var(--text); }
+
+    .form-group input::placeholder { color: #a0bfcf; }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(33,150,196,0.15);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 22px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    #btn-generate {
+      background: var(--teal);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(14,124,123,0.4);
+    }
+    #btn-generate:hover { background: #0a6160; transform: translateY(-1px); }
+
+    #btn-print {
+      background: #fff;
+      color: var(--teal);
+      border: 1.5px solid #a8d4ed;
+    }
+    #btn-print:hover { background: var(--teal-lt); transform: translateY(-1px); }
+
+    /* ════════════════════════════════
+       PREVIEW AREA
+    ════════════════════════════════ */
+    #preview-area {
+      display: flex;
+      justify-content: center;
+      padding: 48px 24px;
+    }
+
+    /* ════════════════════════════════
+       LETTER
+    ════════════════════════════════ */
+    #letter {
+      background: #fff;
+      width: 210mm;
+      min-height: 297mm;
+      padding: 14mm 20mm 16mm 20mm;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      border-radius: 2px;
+    }
+
+    /* Top accent bar */
+    #letter::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #5bbde4, #a8e0f5);
+      border-radius: 2px 2px 0 0;
+    }
+
+    /* ── DATE ── */
+    .letter-date {
+      font-size: 16px;
+      font-weight: 700;
+      color: #000;
+      margin-bottom: 22px;
+      font-family: 'Inter', sans-serif;
+      text-align: right;
+    }
+
+    /* ── TITLE ── */
+    .prescription-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #000;
+      letter-spacing: 0.5px;
+      margin-bottom: 22px;
+      font-family: 'Inter', sans-serif;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    /* ── PATIENT CARD ── */
+    .patient-card {
+      margin-bottom: 20px;
+    }
+
+    .patient-card p {
+      font-size: 15px;
+      line-height: 1.95;
+      font-family: 'Inter', sans-serif;
+      color: #000;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+    }
+
+    .patient-card p strong {
+      font-weight: 600;
+      color: #000;
+    }
+
+    .patient-card p strong::after {
+      content: ':';
+    }
+
+    /* ── DIVIDER ── */
+    .letter-divider {
+      border: none;
+      border-top: 1px solid #bbb;
+      margin: 18px 0;
+    }
+
+    /* ── AUTO PARAGRAPH ── */
+    .auto-para {
+      font-size: 15px;
+      color: #000;
+      line-height: 2;
+      font-family: 'Inter', sans-serif;
+      margin-bottom: 26px;
+    }
+
+    .auto-para strong {
+      font-weight: 700;
+    }
+
+    /* ── RX ── */
+    .rx-section {
+      margin-bottom: 16px;
+    }
+
+    .rx-label {
+      font-size: 26px;
+      font-style: normal;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      color: #000;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .drug-line {
+      font-size: 17px;
+      font-weight: 700;
+      color: #000;
+      font-family: 'Inter', sans-serif;
+      margin-bottom: 6px;
+      text-align: center;
+      letter-spacing: 0.3px;
+    }
+
+    .drug-split {
+      font-size: 15px;
+      color: #000;
+      font-family: 'Inter', sans-serif;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── SPACER ── */
+    .spacer { min-height: 60px; }
+
+    /* ── SIGNATURE ── */
+    .signature-section {
+      padding-top: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .sig-area {
+      height: 44px;
+      width: 180px;
+      border-bottom: 1.5px solid #000;
+      margin-bottom: 8px;
+    }
+
+    .doctor-name-bold {
+      font-weight: 700;
+      font-size: 15px;
+      color: #000;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .doctor-credentials {
+      font-size: 13px;
+      color: #000;
+      line-height: 1.8;
+      margin-top: 4px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ── PRINT ── */
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    @media print {
+      body { background: #fff; }
+      #form-panel { display: none; }
+      #preview-area { padding: 0; }
+      #letter {
+        box-shadow: none;
+        width: 100%;
+        min-height: 100vh;
+        padding: 45mm 20mm 20mm 20mm;
+        border-radius: 0;
+      }
+      #letter::before { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════ FORM ════ -->
+<div id="form-panel">
+  <div class="form-header">
+    <div class="form-header-icon">💊</div>
+    <div>
+      <h2>Pembrolizumab Prescription Generator</h2>
+      <p>Fill in patient details to generate a prescription letter</p>
+    </div>
+  </div>
+
+  <div class="form-body">
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="f-date" />
+      </div>
+
+      <div class="form-group">
+        <label>Consultant</label>
+        <select id="f-consultant">
+          <option value="">— Select Consultant —</option>
+          <option value="Suresh Babu MC">Dr. Suresh Babu MC</option>
+          <option value="Prathyusha Eaga">Dr. Prathyusha Eaga</option>
+          <option value="Chetan V">Dr. Chetan V</option>
+          <option value="Vivek B Maleyur">Dr. Vivek B Maleyur</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Title</label>
+        <select id="f-title">
+          <option value="Mr.">Mr.</option>
+          <option value="Mrs.">Mrs.</option>
+          <option value="Ms.">Ms.</option>
+          <option value="Dr.">Dr.</option>
+          <option value="Master">Master</option>
+          <option value="Baby">Baby</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Patient Name</label>
+        <input type="text" id="f-name" placeholder="Full name" />
+      </div>
+
+      <div class="form-group">
+        <label>Age (Years)</label>
+        <input type="number" id="f-age" placeholder="e.g. 39" min="1" max="120" />
+      </div>
+
+      <div class="form-group">
+        <label>Sex</label>
+        <select id="f-sex">
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>No. of Cycles</label>
+        <input type="number" id="f-cycles" value="3" min="1" max="36" />
+      </div>
+
+      <div class="form-group">
+        <label>UMR No</label>
+        <input type="text" id="f-umr" placeholder="e.g. 123456" />
+      </div>
+
+      <div class="form-group full-width">
+        <label>Diagnosis</label>
+        <input type="text" id="f-diagnosis" placeholder="e.g. Carcinoma Tongue with metastatic disease" />
+      </div>
+
+      <div class="form-group full-width">
+        <label>Chemotherapy Regimen <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional — leave blank if none)</span></label>
+        <input type="text" id="f-chemo" placeholder="e.g. Cisplatin + 5-FU" />
+      </div>
+
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="btn-generate" onclick="generateLetter()">
+        ✦ Generate Letter
+      </button>
+      <button class="btn" id="btn-print" onclick="window.print()">
+        ⎙ Print / Save PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ LETTER PREVIEW ════ -->
+<div id="preview-area">
+  <div id="letter">
+
+    <!-- DATE -->
+    <div class="letter-date" id="l-date">Date:&nbsp;</div>
+
+    <!-- TITLE -->
+    <div class="prescription-title" id="l-title">This prescription valid for 3 cycles</div>
+
+    <!-- PATIENT CARD -->
+    <div class="patient-card">
+      <p><strong>Patient Name</strong> <span id="l-name"></span></p>
+      <p><strong>Age / Sex</strong> <span id="l-agesex"></span></p>
+      <p><strong>UMR No</strong> <span id="l-umr"></span></p>
+    </div>
+
+    <hr class="letter-divider" />
+
+    <!-- AUTO PARAGRAPH -->
+    <div class="auto-para" id="l-autopara"></div>
+
+    <!-- RX -->
+    <div class="rx-section">
+      <div class="rx-label">Rx</div>
+      <div class="drug-line" id="l-drug">Inj. PEMBROLIZUMAB ( Keytruda ) 200 mg</div>
+      <div class="drug-split">( 100 + 100 mg )</div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- SIGNATURE -->
+    <div class="signature-section">
+      <div class="sig-area"></div>
+      <div class="doctor-name-bold" id="l-doctor"></div>
+      <div class="doctor-credentials" id="l-credentials"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  document.getElementById('f-date').value = `${yyyy}-${mm}-${dd}`;
+
+  function formatDate(val) {
+    if (!val) return '';
+    const [y, m, d] = val.split('-');
+    return `${d}.${m}.${y}`;
+  }
+
+  const CREDENTIALS = {
+    'Suresh Babu MC':  'MBBS, MD, DM\nDirector and Lead Consultant Medical Oncology\nKIMS Hospitals, Bengaluru\nKMC No: 60989',
+    'Prathyusha Eaga': 'MBBS, MD, DM\nConsultant Medical Oncologist\nKIMS Hospitals, Bengaluru\nKMC No: 158021',
+    'Vivek B Maleyur': 'MBBS, MD, DM\nConsultant Medical Oncologist\nKIMS Hospitals, Bengaluru',
+    'Chetan V':        'MBBS, MD, DNB, DM\nConsultant Medical Oncologist\nKIMS Hospitals, Bengaluru',
+  };
+
+  function generateLetter() {
+    const date       = document.getElementById('f-date').value;
+    const consultant = document.getElementById('f-consultant').value;
+    const title      = document.getElementById('f-title').value;
+    const name       = document.getElementById('f-name').value.trim();
+    const age        = document.getElementById('f-age').value;
+    const sex        = document.getElementById('f-sex').value;
+    const cycles     = document.getElementById('f-cycles').value || '3';
+    const umr        = document.getElementById('f-umr').value.trim();
+    const diagnosis  = document.getElementById('f-diagnosis').value.trim();
+    const chemo      = document.getElementById('f-chemo').value.trim();
+
+    document.getElementById('l-date').textContent   = `Date: ${formatDate(date)}`;
+    document.getElementById('l-title').textContent  = `This prescription valid for ${cycles} cycle${cycles == 1 ? '' : 's'}`;
+    document.getElementById('l-name').textContent   = name ? `${title}  ${name}` : '';
+    document.getElementById('l-agesex').textContent = age ? `${age} Years / ${sex}` : '';
+    document.getElementById('l-umr').textContent = umr;
+
+    // Auto paragraph with highlights
+    const sexWord = sex.toLowerCase();
+    const paraEl  = document.getElementById('l-autopara');
+    if (age && diagnosis) {
+      const fullName    = name ? `${title} ${name}` : `This patient`;
+      const regimenPart = chemo
+        ? `<strong>${chemo}</strong> + <strong>Pembrolizumab</strong>`
+        : `<strong>Pembrolizumab</strong>`;
+      paraEl.innerHTML = `<strong>${fullName}</strong> is a ${age} year old ${sexWord} diagnosed with <strong>${diagnosis}</strong>, planned for ${regimenPart}.`;
+    } else {
+      paraEl.innerHTML = '';
+    }
+    document.getElementById('l-drug').textContent   = `Inj. PEMBROLIZUMAB ( Keytruda ) 200 mg`;
+
+    document.getElementById('l-doctor').textContent = consultant ? `Dr. ${consultant}` : '';
+    const credEl = document.getElementById('l-credentials');
+    credEl.innerHTML = (consultant && CREDENTIALS[consultant])
+      ? CREDENTIALS[consultant].split('\n').join('<br/>')
+      : '';
+  }
+
+  generateLetter();
+
+  // Live update on any input change
+  document.querySelectorAll('#form-panel input, #form-panel select')
+    .forEach(el => el.addEventListener('change', generateLetter));
+  document.querySelectorAll('#form-panel input[type=text], #form-panel input[type=number]')
+    .forEach(el => el.addEventListener('input', generateLetter));
+</script>
+</body>
+</html>
