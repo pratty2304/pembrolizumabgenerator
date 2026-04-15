@@ -317,6 +317,32 @@
       font-family: 'Inter', sans-serif;
     }
 
+    /* ── EDITABLE FIELDS ── */
+    [contenteditable="true"] {
+      border-radius: 4px;
+      outline: none;
+      transition: background 0.15s, box-shadow 0.15s;
+      cursor: text;
+    }
+
+    [contenteditable="true"]:hover {
+      background: rgba(33,150,196,0.07);
+    }
+
+    [contenteditable="true"]:focus {
+      background: rgba(33,150,196,0.12);
+      box-shadow: 0 0 0 2px rgba(33,150,196,0.35);
+    }
+
+    .edit-hint {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      padding: 6px 0 0;
+      letter-spacing: 0.3px;
+      opacity: 0.75;
+    }
+
     /* ── PRINT ── */
     @page {
       size: A4;
@@ -327,6 +353,7 @@
       body { background: #fff; }
       #form-panel { display: none; }
       #preview-area { padding: 0; }
+      .edit-hint { display: none; }
       #letter {
         box-shadow: none;
         width: 100%;
@@ -335,6 +362,11 @@
         border-radius: 0;
       }
       #letter::before { display: none; }
+      [contenteditable="true"]:hover,
+      [contenteditable="true"]:focus {
+        background: transparent;
+        box-shadow: none;
+      }
     }
   </style>
 </head>
@@ -426,7 +458,7 @@
       <button class="btn" id="btn-generate" onclick="generateLetter()">
         ✦ Generate Letter
       </button>
-      <button class="btn" id="btn-print" onclick="window.print()">
+      <button class="btn" id="btn-print" onclick="printWithName()">
         ⎙ Print / Save PDF
       </button>
     </div>
@@ -438,28 +470,28 @@
   <div id="letter">
 
     <!-- DATE -->
-    <div class="letter-date" id="l-date">Date:&nbsp;</div>
+    <div class="letter-date" id="l-date" contenteditable="true">Date:&nbsp;</div>
 
     <!-- TITLE -->
-    <div class="prescription-title" id="l-title">This prescription valid for 3 cycles</div>
+    <div class="prescription-title" id="l-title" contenteditable="true">This prescription valid for 3 cycles</div>
 
     <!-- PATIENT CARD -->
     <div class="patient-card">
-      <p><strong>Patient Name</strong> <span id="l-name"></span></p>
-      <p><strong>Age / Sex</strong> <span id="l-agesex"></span></p>
-      <p><strong>UMR No</strong> <span id="l-umr"></span></p>
+      <p><strong>Patient Name</strong> <span id="l-name" contenteditable="true"></span></p>
+      <p><strong>Age / Sex</strong> <span id="l-agesex" contenteditable="true"></span></p>
+      <p><strong>UMR No</strong> <span id="l-umr" contenteditable="true"></span></p>
     </div>
 
     <hr class="letter-divider" />
 
     <!-- AUTO PARAGRAPH -->
-    <div class="auto-para" id="l-autopara"></div>
+    <div class="auto-para" id="l-autopara" contenteditable="true"></div>
 
     <!-- RX -->
     <div class="rx-section">
       <div class="rx-label">Rx</div>
-      <div class="drug-line" id="l-drug">Inj. PEMBROLIZUMAB ( Keytruda ) 200 mg</div>
-      <div class="drug-split">( 100 + 100 mg )</div>
+      <div class="drug-line" id="l-drug" contenteditable="true">Inj. PEMBROLIZUMAB ( Keytruda ) 200 mg</div>
+      <div class="drug-split" contenteditable="true">( 100 + 100 mg )</div>
     </div>
 
     <div class="spacer"></div>
@@ -467,9 +499,11 @@
     <!-- SIGNATURE -->
     <div class="signature-section">
       <div class="sig-area"></div>
-      <div class="doctor-name-bold" id="l-doctor"></div>
-      <div class="doctor-credentials" id="l-credentials"></div>
+      <div class="doctor-name-bold" id="l-doctor" contenteditable="true"></div>
+      <div class="doctor-credentials" id="l-credentials" contenteditable="true"></div>
     </div>
+
+    <p class="edit-hint">✎ Click any text in the letter to edit it directly</p>
 
   </div>
 </div>
@@ -531,6 +565,17 @@
     credEl.innerHTML = (consultant && CREDENTIALS[consultant])
       ? CREDENTIALS[consultant].split('\n').join('<br/>')
       : '';
+  }
+
+  function printWithName() {
+    const title  = document.getElementById('f-title').value;
+    const name   = document.getElementById('f-name').value.trim();
+    const prevTitle = document.title;
+    if (name) {
+      document.title = `${title} ${name} - Pembrolizumab Prescription`;
+    }
+    window.print();
+    document.title = prevTitle;
   }
 
   generateLetter();
