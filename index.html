@@ -185,6 +185,17 @@
       border-radius: 2px 2px 0 0;
     }
 
+    /* ── LOGO ── */
+    .letter-logo {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .letter-logo img {
+      max-width: 250px;
+      width: 100%;
+      height: auto;
+    }
+
     /* ── DATE ── */
     .letter-date {
       font-size: 16px;
@@ -358,7 +369,7 @@
         box-shadow: none;
         width: 100%;
         min-height: 100vh;
-        padding: 45mm 20mm 20mm 20mm;
+        padding: 14mm 20mm 20mm 20mm;
         border-radius: 0;
       }
       #letter::before { display: none; }
@@ -468,6 +479,11 @@
 <!-- ════ LETTER PREVIEW ════ -->
 <div id="preview-area">
   <div id="letter">
+
+    <!-- LOGO -->
+    <div class="letter-logo">
+      <img src="logo.png" alt="KIMS MACS Onco Sciences" />
+    </div>
 
     <!-- DATE -->
     <div class="letter-date" id="l-date" contenteditable="true">Date:&nbsp;</div>
